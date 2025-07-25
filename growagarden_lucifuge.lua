@@ -1,156 +1,154 @@
---[[ Grow a Garden Script - Ultimate Secure Version
+--[[ Grow a Garden Script - Enhanced Secure Version
      Made by: lucifuge ]]--
 
---// Anti-Detection Utilities
-local function randomDelay(min, max)
-    return math.random(min * 100, max * 100) / 100
-end
+repeat wait() until game:IsLoaded()
 
-local function safeWait(t)
-    task.wait(randomDelay(t - 0.3, t + 0.3))
-end
+-- Services
+local RS = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Remotes = RS:WaitForChild("RemoteEvents")
 
-local function notify(txt)
-    pcall(function()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "Lucifuge Garden Script",
-            Text = txt,
-            Duration = 5
-        })
-    end)
-end
-
-notify("Loading Lucifuge Secure Script...")
-repeat task.wait() until game:IsLoaded()
-
---// Remote Setup
-local success, RS = pcall(function() return game:GetService("ReplicatedStorage") end)
-if not success then return end
-local Remotes = RS:WaitForChild("RemoteEvents", 10)
-if not Remotes then return notify("❌ RemoteEvents not found") end
-
---// Toggle Table
-local Toggle = {
-    AutoCash = true,
-    AutoSeeds = true,
-    AutoEggs = true,
-    AutoPets = true,
-    AutoFarm = true,
-    HideGUI = false
-}
-
---// Simple GUI
-local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+-- UI Setup
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 ScreenGui.Name = "LucifugeUI"
+
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Position = UDim2.new(0.02, 0, 0.3, 0)
-Frame.Size = UDim2.new(0, 170, 0, 240)
-Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Frame.BackgroundTransparency = 0.1
+Frame.Size = UDim2.new(0, 250, 0, 250)
+Frame.Position = UDim2.new(0.01, 0, 0.1, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Frame.BorderSizePixel = 0
 Frame.Active = true
 Frame.Draggable = true
 
-local function createToggle(name, yPos, toggleVar)
+local Title = Instance.new("TextLabel", Frame)
+Title.Text = "Lucifuge Garden"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Settings Table
+local Toggle = {
+    AutoCash = false,
+    AutoSeeds = false,
+    AutoEggs = false,
+    AutoPets = false
+}
+
+-- Create Toggle Buttons
+local function createToggle(name, yPos)
     local btn = Instance.new("TextButton", Frame)
+    btn.Size = UDim2.new(1, -20, 0, 30)
     btn.Position = UDim2.new(0, 10, 0, yPos)
-    btn.Size = UDim2.new(0, 150, 0, 30)
-    btn.Text = name .. ": ON"
+    btn.Text = "[OFF] " .. name
     btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
     btn.MouseButton1Click:Connect(function()
-        Toggle[toggleVar] = not Toggle[toggleVar]
-        btn.Text = name .. ": " .. (Toggle[toggleVar] and "ON" or "OFF")
+        Toggle[name] = not Toggle[name]
+        btn.Text = (Toggle[name] and "[ON] " or "[OFF] ") .. name
     end)
 end
 
-createToggle("AutoCash", 10, "AutoCash")
-createToggle("AutoSeeds", 50, "AutoSeeds")
-createToggle("AutoEggs", 90, "AutoEggs")
-createToggle("AutoPets", 130, "AutoPets")
-createToggle("AutoFarm", 170, "AutoFarm")
+-- Create toggle buttons
+createToggle("AutoCash", 40)
+createToggle("AutoSeeds", 75)
+createToggle("AutoEggs", 110)
+createToggle("AutoPets", 145)
 
---// Autofarm Simulation
-spawn(function()
-    while Toggle.AutoFarm do
-        pcall(function()
-            Remotes:WaitForChild("CollectAllPlants"):FireServer()
-            Remotes:WaitForChild("WaterAllPlants"):FireServer()
-        end)
-        safeWait(10)
+-- Secure random delay
+local function randomDelay(min, max)
+    return math.random(min * 100, max * 100) / 100
+end
+
+-- Cash Generator
+task.spawn(function()
+    while true do
+        if Toggle.AutoCash then
+            local amt = math.random(100000, 500000)
+            pcall(function()
+                Remotes:WaitForChild("AddCash"):FireServer(amt)
+            end)
+        end
+        task.wait(randomDelay(3, 6))
     end
 end)
 
---// Auto Systems
-spawn(function()
-    while Toggle.AutoCash do
-        local amount = math.random(500000, 1000000)
-        pcall(function()
-            Remotes:WaitForChild("AddCash"):FireServer(amount)
-        end)
-        safeWait(5)
-    end
-end)
-
-spawn(function()
+-- Seed Planter
+task.spawn(function()
     local seeds = {"Carrot", "Strawberry", "Blueberry", "Corn", "Cactus"}
-    while Toggle.AutoSeeds do
-        for _, seed in pairs(seeds) do
-            pcall(function()
-                Remotes:WaitForChild("AddSeed"):FireServer(seed)
-                safeWait(0.5)
-                Remotes:WaitForChild("PlantSeed"):FireServer(seed)
-            end)
-            safeWait(3)
+    while true do
+        if Toggle.AutoSeeds then
+            for _, seed in ipairs(seeds) do
+                pcall(function()
+                    Remotes:WaitForChild("AddSeed"):FireServer(seed)
+                    task.wait(0.25)
+                    Remotes:WaitForChild("PlantSeed"):FireServer(seed)
+                end)
+                task.wait(randomDelay(1.5, 3))
+            end
         end
+        task.wait(2)
     end
 end)
 
-spawn(function()
+-- Egg Hatcher
+task.spawn(function()
     local eggs = {"Common Egg", "Rare Egg", "Legendary Egg", "Bug Egg"}
-    while Toggle.AutoEggs do
-        for _, egg in ipairs(eggs) do
-            pcall(function()
-                Remotes:WaitForChild("GiveEgg"):FireServer(egg)
-                safeWait(0.5)
-                Remotes:WaitForChild("HatchEgg"):FireServer(egg)
-            end)
-            safeWait(5)
+    while true do
+        if Toggle.AutoEggs then
+            for _, egg in ipairs(eggs) do
+                pcall(function()
+                    Remotes:WaitForChild("GiveEgg"):FireServer(egg)
+                    task.wait(0.4)
+                    Remotes:WaitForChild("HatchEgg"):FireServer(egg)
+                end)
+                task.wait(randomDelay(3, 5))
+            end
         end
+        task.wait(1)
     end
 end)
 
-spawn(function()
+-- Pet Generator
+task.spawn(function()
     local pets = {
         {Name = "Dog", Age = 25, Size = 3.5},
         {Name = "Monkey", Age = 50, Size = 8.5},
         {Name = "Frog", Age = 70, Size = 10.2}
     }
 
-    while Toggle.AutoPets do
-        for _, pet in pairs(pets) do
-            pcall(function()
-                local args = {
-                    [1] = pet.Name,
-                    [2] = pet.Age,
-                    [3] = pet.Size,
-                    [4] = "Made by lucifuge"
-                }
-                Remotes:WaitForChild("AddPet"):FireServer(unpack(args))
-            end)
-            safeWait(6)
+    while true do
+        if Toggle.AutoPets then
+            for _, pet in ipairs(pets) do
+                pcall(function()
+                    Remotes:WaitForChild("AddPet"):FireServer(pet.Name, pet.Age, pet.Size, "Made by lucifuge")
+                end)
+                task.wait(randomDelay(5, 7))
+            end
         end
+        task.wait(1)
     end
 end)
 
---// Keepalive Ping
-spawn(function()
+-- Heartbeat Ping (anti-detection)
+task.spawn(function()
     while true do
         pcall(function()
-            Remotes:WaitForChild("HeartbeatPing"):FireServer("lucifuge_keepalive_" .. tostring(math.random(1000,9999)))
+            Remotes:WaitForChild("HeartbeatPing"):FireServer("lucf_" .. tostring(math.random(1000, 9999)))
         end)
-        wait(math.random(30, 45))
+        task.wait(randomDelay(25, 40))
     end
 end)
 
-notify("✅ Lucifuge Script Running Successfully")
+-- Final UI Notification
+pcall(function()
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Lucifuge Script Ready",
+        Text = "All systems online. UI Loaded.",
+        Duration = 6
+    })
+end)
