@@ -1,15 +1,38 @@
---[[ Grow a Garden Script - Enhanced Secure Version
-     Made by: lucifuge ]]--
+--[[ Grow a Garden Script - Lucifuge Mariza Edition
+     Secure Delta-Compatible Version with UI & Load Screen
+     Made by: lucifuge ]]
 
 repeat wait() until game:IsLoaded()
 
 -- Services
 local RS = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local Remotes = RS:WaitForChild("RemoteEvents")
 
--- UI Setup
+-- Loading Screen
+local loadingGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+loadingGui.Name = "LucifugeLoading"
+
+local loadingFrame = Instance.new("Frame", loadingGui)
+loadingFrame.Size = UDim2.new(0, 280, 0, 80)
+loadingFrame.Position = UDim2.new(0.5, -140, 0.4, 0)
+loadingFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+loadingFrame.BorderSizePixel = 0
+
+local loadingText = Instance.new("TextLabel", loadingFrame)
+loadingText.Size = UDim2.new(1, 0, 1, 0)
+loadingText.Text = "🌱 Loading Lucifuge Garden Script..."
+loadingText.TextColor3 = Color3.new(1, 1, 1)
+loadingText.TextSize = 18
+loadingText.Font = Enum.Font.GothamBold
+loadingText.BackgroundTransparency = 1
+
+wait(2.5)
+loadingGui:Destroy()
+
+-- Main UI Setup
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 ScreenGui.Name = "LucifugeUI"
 
@@ -22,14 +45,14 @@ Frame.Active = true
 Frame.Draggable = true
 
 local Title = Instance.new("TextLabel", Frame)
-Title.Text = "Lucifuge Garden"
+Title.Text = "Lucifuge Garden Menu"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- Settings Table
+-- Toggle Settings
 local Toggle = {
     AutoCash = false,
     AutoSeeds = false,
@@ -37,7 +60,7 @@ local Toggle = {
     AutoPets = false
 }
 
--- Create Toggle Buttons
+-- Create Buttons
 local function createToggle(name, yPos)
     local btn = Instance.new("TextButton", Frame)
     btn.Size = UDim2.new(1, -20, 0, 30)
@@ -53,13 +76,12 @@ local function createToggle(name, yPos)
     end)
 end
 
--- Create toggle buttons
 createToggle("AutoCash", 40)
 createToggle("AutoSeeds", 75)
 createToggle("AutoEggs", 110)
 createToggle("AutoPets", 145)
 
--- Secure random delay
+-- Random Delay
 local function randomDelay(min, max)
     return math.random(min * 100, max * 100) / 100
 end
@@ -68,12 +90,11 @@ end
 task.spawn(function()
     while true do
         if Toggle.AutoCash then
-            local amt = math.random(100000, 500000)
             pcall(function()
-                Remotes:WaitForChild("AddCash"):FireServer(amt)
+                Remotes:WaitForChild("AddCash"):FireServer(math.random(100000, 500000))
             end)
         end
-        task.wait(randomDelay(3, 6))
+        task.wait(randomDelay(2.5, 5))
     end
 end)
 
@@ -88,7 +109,7 @@ task.spawn(function()
                     task.wait(0.25)
                     Remotes:WaitForChild("PlantSeed"):FireServer(seed)
                 end)
-                task.wait(randomDelay(1.5, 3))
+                task.wait(randomDelay(1.5, 2.8))
             end
         end
         task.wait(2)
@@ -106,10 +127,10 @@ task.spawn(function()
                     task.wait(0.4)
                     Remotes:WaitForChild("HatchEgg"):FireServer(egg)
                 end)
-                task.wait(randomDelay(3, 5))
+                task.wait(randomDelay(2, 4))
             end
         end
-        task.wait(1)
+        task.wait(1.5)
     end
 end)
 
@@ -120,7 +141,6 @@ task.spawn(function()
         {Name = "Monkey", Age = 50, Size = 8.5},
         {Name = "Frog", Age = 70, Size = 10.2}
     }
-
     while true do
         if Toggle.AutoPets then
             for _, pet in ipairs(pets) do
@@ -130,21 +150,21 @@ task.spawn(function()
                 task.wait(randomDelay(5, 7))
             end
         end
-        task.wait(1)
+        task.wait(2)
     end
 end)
 
--- Heartbeat Ping (anti-detection)
+-- Anti-Cheat Ping
 task.spawn(function()
     while true do
         pcall(function()
             Remotes:WaitForChild("HeartbeatPing"):FireServer("lucf_" .. tostring(math.random(1000, 9999)))
         end)
-        task.wait(randomDelay(25, 40))
+        task.wait(randomDelay(20, 40))
     end
 end)
 
--- Final UI Notification
+-- Final Notification
 pcall(function()
     game.StarterGui:SetCore("SendNotification", {
         Title = "Lucifuge Script Ready",
